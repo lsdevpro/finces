@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finces - Gráfica Activa</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
     <style>
         /* Estilos Generales */
@@ -67,29 +68,39 @@
     </style>
 </head>
 <body>
-    <h1>Finces - Diario de Trading</h1>
-    
-    <div class="controles">
-        <select id="selector-moneda">
-            <option value="bitcoin">Bitcoin (BTC)</option>
-            <option value="ethereum">Ethereum (ETH)</option>
-            <option value="ripple">XRP (XRP)</option>
-            <option value="solana">Solana (SOL)</option>
-        </select>
-        
-        <button id="btn-obtener">Obtener Precio</button>
-
-        <div class="switch-group">
-            <label class="switch">
-                <input type="checkbox" id="switch-auto">
-                <span class="slider"></span>
-            </label>
-            <span class="switch-label">Piloto Automático (60s)</span>
+    <div id="login-view" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh;">
+        <h1 style="font-size: 32px; margin-bottom: 10px;">Finces</h1>
+        <p style="color: #555; margin-bottom: 30px;">Identificación Requerida</p>
+        <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 300px;">
+            <input type="email" id="login-email" placeholder="Correo Electrónico" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
+            <input type="password" id="login-password" placeholder="Contraseña" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
+            <button id="btn-login" style="width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s;">Ingresar a la Bóveda</button>
+            <p id="login-error" style="color: red; font-size: 14px; margin-top: 15px; display: none;"></p>
         </div>
     </div>
 
-    <p id="resultado">Presiona el botón o activa el piloto.</p>
-    <div id="tvchart" style="width: 100%; height: 400px; background-color: #ffffff;"></div>
+    <div id="app-view" style="display: none;">
+        <h1>Finces - Diario de Trading</h1>
+        <div class="controles">
+            <select id="selector-moneda">
+                <option value="bitcoin">Bitcoin (BTC)</option>
+                <option value="ethereum">Ethereum (ETH)</option>
+                <option value="ripple">XRP (XRP)</option>
+                <option value="solana">Solana (SOL)</option>
+            </select>
+            <button id="btn-obtener">Obtener Precio</button>
+            <div class="switch-group">
+                <label class="switch">
+                    <input type="checkbox" id="switch-auto">
+                    <span class="slider"></span>
+                </label>
+                <span class="switch-label">Piloto Automático (60s)</span>
+            </div>
+            <button id="btn-logout" style="background-color: #dc3545; padding: 10px 20px;">Cerrar Sesión</button>
+        </div>
+        <p id="resultado">Presiona el botón o activa el piloto.</p>
+        <div id="tvchart" style="width: 100%; height: 400px; background-color: #ffffff;"></div>
+    </div>
 
     <script src="app.js"></script>
 </body>

@@ -37,5 +37,12 @@ def get_precio():
         print(f"Error en servidor: {e}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    return jsonify({
+        'supabaseUrl': os.getenv('SUPABASE_URL'),
+        'supabaseAnonKey': os.getenv('SUPABASE_KEY')
+    })
+
 if __name__ == '__main__':
     app.run(port=5000, debug=True)
