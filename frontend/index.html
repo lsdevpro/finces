@@ -3,19 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finces - Prueba de Vida</title>
+    <title>Finces - Gráfica Activa</title>
+    <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
     <style>
-        body { font-family: Arial, sans-serif; padding: 50px; text-align: center; background-color: #f4f4f9; }
-        button { padding: 15px 30px; font-size: 18px; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 8px; margin-bottom: 20px;}
+        /* Estilos Generales */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; padding: 30px; text-align: center; background-color: #f4f4f9; }
+        h1 { font-weight: 700; margin-bottom: 30px; }
+        .controles { margin-bottom: 25px; display: flex; justify-content: center; align-items: center; gap: 30px; }
+        button { padding: 15px 30px; font-size: 16px; font-weight: 600; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 8px; transition: background 0.2s; }
         button:hover { background-color: #0056b3; }
-        #resultado { font-size: 24px; font-weight: bold; color: #333; transition: color 0.3s; }
+        #resultado { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 25px; transition: color 0.3s; padding: 10px; border-radius: 8px;}
+        #tvchart { margin: 0 auto; max-width: 800px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e1e4e8;}
+
+        /* --- Estilos Pro del Nuevo Switch (iOS/Moderno) --- */
+        .switch-group { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; color: #555;}
+
+        /* El contenedor principal */
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+
+        /* Ocultar el checkbox original por completo */
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        /* El deslizador (el fondo de la 'pastilla') */
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+
+        /* El círculo blanco interior */
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+        /* --- Estados Activos --- */
+        /* Cuando está CHECKEADO -> Fondo Azul Moderno */
+        input:checked + .slider { background-color: #007bff; }
+
+        /* Cuando está CHECKEADO -> Mover el círculo blanco a la derecha */
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* --- Estilos Pro del Selector de Moneda --- */
+        #selector-moneda {
+            appearance: none; /* Quita el diseño nativo del navegador */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: #ffffff;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 13px 45px 13px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+            /* Flecha personalizada (SVG incrustado) */
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        
+        #selector-moneda:hover, #selector-moneda:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
     </style>
 </head>
 <body>
-    <h1>Finces - Conexión API CoinGecko</h1>
-    <button id="btn-obtener">Obtener Precio de Bitcoin</button>
-    <p id="resultado">Presiona el botón para consultar al servidor.</p>
+    <h1>Finces - Diario de Trading</h1>
     
+    <div class="controles">
+        <select id="selector-moneda">
+            <option value="bitcoin">Bitcoin (BTC)</option>
+            <option value="ethereum">Ethereum (ETH)</option>
+            <option value="ripple">XRP (XRP)</option>
+            <option value="solana">Solana (SOL)</option>
+        </select>
+        
+        <button id="btn-obtener">Obtener Precio</button>
+
+        <div class="switch-group">
+            <label class="switch">
+                <input type="checkbox" id="switch-auto">
+                <span class="slider"></span>
+            </label>
+            <span class="switch-label">Piloto Automático (60s)</span>
+        </div>
+    </div>
+
+    <p id="resultado">Presiona el botón o activa el piloto.</p>
+    <div id="tvchart" style="width: 100%; height: 400px; background-color: #ffffff;"></div>
+
     <script src="app.js"></script>
 </body>
 </html>
