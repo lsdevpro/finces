@@ -1,107 +1,366 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finces - Gráfica Activa</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/lightweight-charts@4.2.1/dist/lightweight-charts.standalone.production.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        /* Estilos Generales */
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; padding: 30px; text-align: center; background-color: #f4f4f9; }
-        h1 { font-weight: 700; margin-bottom: 30px; }
-        .controles { margin-bottom: 25px; display: flex; justify-content: center; align-items: center; gap: 30px; }
-        button { padding: 15px 30px; font-size: 16px; font-weight: 600; cursor: pointer; background-color: #007bff; color: white; border: none; border-radius: 8px; transition: background 0.2s; }
-        button:hover { background-color: #0056b3; }
-        #resultado { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 25px; transition: color 0.3s; padding: 10px; border-radius: 8px;}
-        #tvchart { margin: 0 auto; max-width: 800px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #e1e4e8;}
+        :root {
+            --sb-expanded: 240px;
+            --sb-collapsed: 70px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            /* Tema Claro (Light Mode) */
+            --bg-main: #f8fafc;
+            --bg-side: #ffffff;
+            --text: #0f172a;
+            --border: #e2e8f0;
+            --accent: #007bff;
+            --nav-opacity: 0.7;
+        }
+        
+        [data-theme="dark"] {
+            --bg-main: #020617; /* Negro profundo */
+            --bg-side: #0f172a; /* Azul pizarra muy oscuro */
+            --text: #f1f5f9;
+            --border: #1e293b;
+            --accent: #38bdf8;
+            --nav-opacity: 0.8;
+        }
 
-        /* --- Estilos Pro del Nuevo Switch (iOS/Moderno) --- */
-        .switch-group { display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 500; color: #555;}
+        body { margin: 0; display: flex; height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; overflow: hidden; background-color: var(--bg-main); color: var(--text); transition: background-color 0.3s, color 0.3s; }
+        
+        /* Estructura Principal */
+        #app-view { display: flex !important; width: 100%; height: 100%; }
+        
+        /* Sidebar (El menú) */
+        .sidebar { 
+            width: var(--sb-expanded); background: var(--bg-side); border-right: 1px solid var(--border);
+            color: var(--text); display: flex; flex-direction: column; transition: var(--transition); flex-shrink: 0;
+        }
+        .sidebar.collapsed { width: var(--sb-collapsed); }
+        
+        .sidebar-header { padding: 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+        .logo { font-weight: 800; font-size: 18px; letter-spacing: 2px; }
+        #btn-toggle { background: none; border: none; color: var(--text); cursor: pointer; font-size: 16px; transition: var(--transition); }
+        .sidebar.collapsed #btn-toggle { transform: rotate(180deg); }
+        
+        /* Navegación Principal */
+        .nav-menu { flex-grow: 1; padding: 10px 0; }
+        .nav-item { 
+            display: flex; align-items: center; padding: 12px 24px; color: var(--text); 
+            text-decoration: none; opacity: var(--nav-opacity); transition: 0.2s;
+        }
+        .nav-item.active { opacity: 1; color: var(--accent); border-right: 3px solid var(--accent); background: rgba(37, 150, 255, 0.05); }
+        .nav-item:hover { opacity: 1; background: rgba(37, 150, 255, 0.05); }
+        .nav-item i { font-size: 18px; width: 25px; text-align: center; }
+        .nav-item span { margin-left: 15px; font-weight: 500; white-space: nowrap; }
+        
+        /* Sidebar Footer y Controles de Tema (¡SOLUCIÓN AL ERROR!) */
+        .sidebar-footer { padding: 1rem; border-top: 1px solid var(--border); margin-top: auto; }
+        .theme-controls { display: flex; gap: 4px; justify-content: center; margin-bottom: 12px; transition: var(--transition); }
+        .t-btn { background: none; border: 1px solid var(--border); color: var(--text); padding: 8px; border-radius: 4px; cursor: pointer; flex: 1; text-align: center; font-size: 14px; }
+        .t-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        
+        #btn-logout-new { 
+            background: none; border: none; color: #ef4444; display: flex; align-items: center; 
+            cursor: pointer; padding: 10px; border-radius: 8px; width: 100%; transition: var(--transition);
+        }
+        #btn-logout-new:hover { background: rgba(239, 68, 68, 0.1); }
+        #btn-logout-new i { font-size: 18px; width: 25px; text-align: center; }
+        #btn-logout-new span { margin-left: 15px; }
 
-        /* El contenedor principal */
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        /* === REGLAS ESPECÍFICAS PARA EL MODO COLAPSADO (Solucionan image_6.png) === */
+        .sidebar.collapsed span, .sidebar.collapsed .logo { display: none; }
+        .sidebar.collapsed .nav-item { justify-content: center; padding: 12px 0; }
+        
+        /* Cuando está colapsado, los botones de tema se apilan verticalmente y el logout se centra */
+        .sidebar.collapsed .theme-controls { flex-direction: column; align-items: center; gap: 4px; }
+        .sidebar.collapsed .t-btn { width: 40px; padding: 8px 0; }
+        .sidebar.collapsed #btn-logout-new { justify-content: center; padding: 10px 0; }
 
-        /* Ocultar el checkbox original por completo */
-        .switch input { opacity: 0; width: 0; height: 0; }
+        /* Área de Contenido */
+        .app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+        .main-content { flex-grow: 1; background: var(--bg-main); overflow-y: auto; padding: 2rem; transition: var(--transition); }
+        .content-view { display: none; animation: fadeIn 0.3s ease; }
+        .content-view.active { display: block; }
 
-        /* El deslizador (el fondo de la 'pastilla') */
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        /* --- Rest of old CSS for terminal --- */
+        h1 {
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
 
-        /* El círculo blanco interior */
-        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .controles {
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+        }
 
-        /* --- Estados Activos --- */
-        /* Cuando está CHECKEADO -> Fondo Azul Moderno */
-        input:checked + .slider { background-color: #007bff; }
+        button.btn-primary {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
 
-        /* Cuando está CHECKEADO -> Mover el círculo blanco a la derecha */
-        input:checked + .slider:before { transform: translateX(22px); }
+        button.btn-primary:hover {
+            opacity: 0.9;
+        }
 
-        /* --- Estilos Pro del Selector de Moneda --- */
+        #resultado {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            transition: color 0.3s;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        #tvchart {
+            margin: 0 auto;
+            max-width: 800px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        .switch-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked+.slider {
+            background-color: var(--accent);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(22px);
+        }
+
         #selector-moneda {
-            appearance: none; /* Quita el diseño nativo del navegador */
+            appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            background-color: #ffffff;
-            border: 2px solid #e1e4e8;
+            background-color: var(--bg-side);
+            border: 2px solid var(--border);
             border-radius: 8px;
             padding: 13px 45px 13px 20px;
             font-size: 16px;
             font-weight: 600;
-            color: #333;
+            color: var(--text);
             cursor: pointer;
             outline: none;
             transition: all 0.2s ease;
-            /* Flecha personalizada (SVG incrustado) */
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: right 15px center;
             background-size: 16px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
         }
-        
-        #selector-moneda:hover, #selector-moneda:focus {
-            border-color: #007bff;
-            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+
+        #selector-moneda:hover,
+        #selector-moneda:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        #diario-section {
+            margin-top: 40px;
+            text-align: left;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            background: var(--bg-side);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border);
+        }
+
+        #nota-texto {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 16px;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+            resize: vertical;
+            background: var(--bg-main);
+            color: var(--text);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
+
 <body>
-    <div id="login-view" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh;">
+    <div id="login-view"
+        style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--bg-main);">
         <h1 style="font-size: 32px; margin-bottom: 10px;">Finces</h1>
-        <p style="color: #555; margin-bottom: 30px;">Identificación Requerida</p>
-        <div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 300px;">
-            <input type="email" id="login-email" placeholder="Correo Electrónico" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
-            <input type="password" id="login-password" placeholder="Contraseña" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box;">
-            <button id="btn-login" style="width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; transition: 0.2s;">Ingresar a la Bóveda</button>
-            <p id="login-error" style="color: red; font-size: 14px; margin-top: 15px; display: none;"></p>
+        <p style="color: var(--text); opacity: 0.7; margin-bottom: 30px;">Identificación Requerida</p>
+        <div
+            style="background: var(--bg-side); padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 300px; border: 1px solid var(--border);">
+            <input type="email" id="login-email" placeholder="Correo Electrónico"
+                style="width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; background: var(--bg-main); color: var(--text);">
+            <input type="password" id="login-password" placeholder="Contraseña"
+                style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; background: var(--bg-main); color: var(--text);">
+            <button id="btn-login" class="btn-primary" style="width: 100%;">Ingresar a la Bóveda</button>
+            <p id="login-error" style="color: #ef4444; font-size: 14px; margin-top: 15px; display: none;"></p>
         </div>
     </div>
 
-    <div id="app-view" style="display: none;">
-        <h1>Finces - Diario de Trading</h1>
-        <div class="controles">
-            <select id="selector-moneda">
-                <option value="bitcoin">Bitcoin (BTC)</option>
-                <option value="ethereum">Ethereum (ETH)</option>
-                <option value="ripple">XRP (XRP)</option>
-                <option value="solana">Solana (SOL)</option>
-            </select>
-            <button id="btn-obtener">Obtener Precio</button>
-            <div class="switch-group">
-                <label class="switch">
-                    <input type="checkbox" id="switch-auto">
-                    <span class="slider"></span>
-                </label>
-                <span class="switch-label">Piloto Automático (60s)</span>
-            </div>
-            <button id="btn-logout" style="background-color: #dc3545; padding: 10px 20px;">Cerrar Sesión</button>
+    <div id="app-view" style="display: none; height: 100vh;">
+        <div class="app-container" style="display: flex; height: 100%; width: 100%;">
+            <aside id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <span class="logo">FINCES</span>
+                    <button id="btn-toggle"><i class="fas fa-chevron-left"></i></button>
+                </div>
+                <nav class="nav-menu">
+                    <a href="#" class="nav-item active" data-page="terminal"><i class="fas fa-terminal"></i><span>Terminal</span></a>
+                    <a href="#" class="nav-item" data-page="portfolio"><i class="fas fa-wallet"></i><span>Portafolio</span></a>
+                    <a href="#" class="nav-item" data-page="analisis"><i class="fas fa-chart-pie"></i><span>Análisis</span></a>
+                    <a href="#" class="nav-item" data-page="config"><i class="fas fa-sliders-h"></i><span>Ajustes</span></a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="theme-controls">
+                        <button class="t-btn" data-t="light" title="Modo Claro"><i class="fas fa-sun"></i></button>
+                        <button class="t-btn" data-t="dark" title="Modo Oscuro"><i class="fas fa-moon"></i></button>
+                        <button class="t-btn" data-t="system" title="Tema del Sistema"><i class="fas fa-desktop"></i></button>
+                    </div>
+                    <button id="btn-logout-new"><i class="fas fa-power-off"></i><span>Salir</span></button>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <section id="view-terminal" class="content-view active">
+                    <div class="header-content" style="text-align: center;">
+                        <h1>Terminal de Trading</h1>
+                        <div id="resultado">Presiona el botón para graficar.</div>
+                    </div>
+
+                    <div class="controles">
+                        <select id="selector-moneda">
+                            <option value="bitcoin">Bitcoin (BTC)</option>
+                            <option value="ethereum">Ethereum (ETH)</option>
+                            <option value="ripple">XRP (XRP)</option>
+                            <option value="solana">Solana (SOL)</option>
+                        </select>
+                        <button id="btn-obtener" class="btn-primary">Obtener Precio</button>
+                        <div class="switch-group">
+                            <label class="switch">
+                                <input type="checkbox" id="switch-auto">
+                                <span class="slider"></span>
+                            </label>
+                            <span class="switch-label">Auto (60s)</span>
+                        </div>
+                    </div>
+
+                    <div id="tvchart" style="width: 100%; height: 400px; background-color: transparent;"></div>
+
+                    <div id="diario-section">
+                        <h2 style="margin-top: 0;">Mis Notas - <span id="diario-moneda-label" style="color: var(--accent);">Bitcoin</span></h2>
+                        <textarea id="nota-texto" rows="4" placeholder="Ej. El precio muestra volatilidad hoy. Abro posición..."></textarea>
+                        <button id="btn-guardar-nota" class="btn-primary" style="margin-bottom: 30px;">Guardar Nota</button>
+
+                        <h3 style="border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-bottom: 20px;">
+                            Historial de Operaciones</h3>
+                        <div id="lista-notas" style="min-height: 100px;">
+                            <p style="text-align: center; opacity: 0.7;">Cargando notas...</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <section id="view-portfolio" class="content-view">
+                    <h1>Portafolio</h1>
+                    <p style="opacity: 0.7;">Sección en desarrollo...</p>
+                    <div style="background: var(--bg-side); padding: 50px; border-radius: 12px; border: 2px dashed var(--border); text-align: center; margin-top: 20px;">
+                        <i class="fas fa-tools" style="font-size: 40px; margin-bottom: 20px; opacity: 0.5;"></i>
+                        <p>Esperando sus instrucciones para el propósito de esta página.</p>
+                    </div>
+                </section>
+                
+                <section id="view-analisis" class="content-view">
+                    <h1>Análisis</h1>
+                    <p style="opacity: 0.7;">Sección en desarrollo...</p>
+                </section>
+                
+                <section id="view-config" class="content-view">
+                    <h1>Ajustes</h1>
+                    <p style="opacity: 0.7;">Sección en desarrollo...</p>
+                </section>
+            </main>
         </div>
-        <p id="resultado">Presiona el botón o activa el piloto.</p>
-        <div id="tvchart" style="width: 100%; height: 400px; background-color: #ffffff;"></div>
     </div>
 
     <script src="app.js"></script>
 </body>
+
 </html>
