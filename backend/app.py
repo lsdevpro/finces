@@ -1,5 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from data_manager import DataManager
+from math_engine import MathEngine
 import requests
 import os
 from dotenv import load_dotenv
@@ -44,5 +46,35 @@ def get_config():
         'supabaseAnonKey': os.getenv('SUPABASE_KEY')
     })
 
+@app.route('/api/analysis/monthly', methods=['POST'])
+def analyze_monthly_data():
+    try:
+        # 1. Recibir las instrucciones de la pantalla
+        payload = request.json
+        symbol = payload.get('symbol', 'BTCUSDT')
+        fiat_symbol = payload.get('fiat_symbol', 'USDTMXN')
+        year = int(payload.get('year', 2025))
+        month = int(payload.get('month', 1))
+
+        # 2. Sincronizar la Bóveda (Asegurar que los datos existan)
+        DataManager.get_or_fetch_month(symbol, year, month)
+        DataManager.get_or_fetch_month(fiat_symbol, year, month)
+
+        # 3. Encender el Motor Matemático y cruzar los datos
+        analysis_results = MathEngine.process_daily_extremes(symbol, fiat_symbol, year, month)
+
+        # 4. Devolver la inteligencia empaquetada a la pantalla
+        return jsonify({
+            "status": "success",
+            "symbol": symbol,
+            "fiat": fiat_symbol,
+            "period": f"{year}-{month:02d}",
+            "data": analysis_results
+        }), 200
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    print("Servidor Finces Iniciado. Escuchando en el puerto 5000...")
+    app.run(debug=True, port=5000)
