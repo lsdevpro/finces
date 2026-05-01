@@ -223,6 +223,114 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         cargarNotas();
+
+        // --- LÓGICA MÓDULO ANÁLISIS QUANT ---
+        const btnAnalizar = document.getElementById('btn-analizar');
+        const tokenSelect = document.getElementById('analysis-token');
+        const fiatSelect = document.getElementById('analysis-fiat');
+        const yearSelect = document.getElementById('analysis-year');
+        const monthSelect = document.getElementById('analysis-month');
+        const tbodyAnalisis = document.getElementById('analysis-tbody');
+        const valMaxAbs = document.getElementById('val-max-abs');
+        const valMinAbs = document.getElementById('val-min-abs');
+        const subMaxAbs = document.getElementById('sub-max-abs');
+        const subMinAbs = document.getElementById('sub-min-abs');
+
+        if(btnAnalizar) {
+            btnAnalizar.addEventListener('click', async () => {
+                const symbol = tokenSelect.value;
+                const fiat = fiatSelect.value;
+                const year = yearSelect.value;
+                const month = monthSelect.value;
+
+                // Estado UI: Procesando
+                btnAnalizar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Extrayendo Datos...';
+                btnAnalizar.disabled = true;
+                tbodyAnalisis.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px;">Conectando con el Motor Cuantitativo y sincronizando bóveda...</td></tr>';
+
+                try {
+                    // Llamada al servidor Python
+                    const response = await fetch('http://127.0.0.1:5000/api/analysis/monthly', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ symbol, fiat_symbol: fiat, year, month })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.status === 'success') {
+                        renderQuantData(result.data);
+                    } else {
+                        tbodyAnalisis.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-bear); padding: 30px;">Error: ${result.message}</td></tr>`;
+                    }
+                } catch (error) {
+                    console.error("Error en análisis:", error);
+                    tbodyAnalisis.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--color-bear); padding: 30px;">Error de conexión con el servidor Python. ¿Está encendido?</td></tr>`;
+                } finally {
+                    // Restaurar botón
+                    btnAnalizar.innerHTML = '<i class="fas fa-bolt"></i> Iniciar Procesador Quant';
+                    btnAnalizar.disabled = false;
+                }
+            });
+        }
+
+        function renderQuantData(data) {
+            tbodyAnalisis.innerHTML = '';
+            
+            let maxAbs = 0;
+            let minAbs = Infinity;
+            let maxAbsDate = '';
+            let minAbsDate = '';
+
+            // Extraer días y ordenar cronológicamente
+            const days = Object.keys(data).sort();
+
+            if(days.length === 0) {
+                tbodyAnalisis.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px;">La bóveda no devolvió datos para este periodo.</td></tr>';
+                valMaxAbs.innerText = "$0.00";
+                valMinAbs.innerText = "$0.00";
+                subMaxAbs.innerText = "---";
+                subMinAbs.innerText = "---";
+                return;
+            }
+
+            // Recorrer día por día para armar la tabla y buscar récords absolutos
+            days.forEach(day => {
+                const dayData = data[day];
+                
+                // Rastrear Máximos y Mínimos Absolutos
+                if (dayData.max_price_mxn > maxAbs) {
+                    maxAbs = dayData.max_price_mxn;
+                    maxAbsDate = `${day} ${dayData.max_time.split('T')[1].substring(0,5)}`;
+                }
+                if (dayData.min_price_mxn < minAbs) {
+                    minAbs = dayData.min_price_mxn;
+                    minAbsDate = `${day} ${dayData.min_time.split('T')[1].substring(0,5)}`;
+                }
+
+                // Formatear horas
+                const timeMax = dayData.max_time ? dayData.max_time.split('T')[1].substring(0,5) : '--:--';
+                const timeMin = dayData.min_time ? dayData.min_time.split('T')[1].substring(0,5) : '--:--';
+
+                // Crear fila de la tabla
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${day}</td>
+                    <td style="color: var(--color-bull); font-weight: 500;">$${dayData.max_price_mxn.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td style="color: var(--text-muted);">${timeMax}</td>
+                    <td style="color: var(--color-bear); font-weight: 500;">$${dayData.min_price_mxn.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                    <td style="color: var(--text-muted);">${timeMin}</td>
+                `;
+                tbodyAnalisis.appendChild(tr);
+            });
+
+            // Actualizar Tarjetas Flotantes (Récords Absolutos)
+            valMaxAbs.innerText = `$${maxAbs.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            subMaxAbs.innerText = `Registrado el: ${maxAbsDate}`;
+            
+            valMinAbs.innerText = `$${minAbs.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            subMinAbs.innerText = `Registrado el: ${minAbsDate}`;
+        }
     }
 
     // --- Lógica del Sistema de Temas ---
