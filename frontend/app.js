@@ -333,49 +333,43 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // --- Lógica del Sistema de Temas ---
-    const themeBtns = document.querySelectorAll('.t-btn');
+        // --- Lógica del Sistema de Temas (Switch Chainx) ---
+    const themeSwitch = document.getElementById('theme-toggle-switch');
 
-    const setTheme = (theme) => {
+    const setTheme = (isDark) => {
         const root = document.documentElement;
-        let themeToApply = theme;
-
-        if (theme === 'system') {
-            themeToApply = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        }
-
-        root.setAttribute('data-theme', themeToApply);
+        const theme = isDark ? 'dark' : 'light';
+        
+        root.setAttribute('data-theme', theme);
         localStorage.setItem('finces-theme', theme);
-
-        themeBtns.forEach(btn => {
-            btn.classList.toggle('active', btn.getAttribute('data-t') === theme);
-        });
+        if(themeSwitch) themeSwitch.checked = isDark;
 
         if (window.activeChart) {
-            const isDark = themeToApply === 'dark';
             window.activeChart.applyOptions({
                 layout: {
-                    background: { color: isDark ? '#020617' : '#ffffff' },
-                    textColor: isDark ? '#f1f5f9' : '#0f172a'
+                    background: { color: isDark ? '#0f1015' : '#ffffff' },
+                    textColor: isDark ? '#ffffff' : '#0f172a'
                 },
                 grid: {
-                    vertLines: { color: isDark ? '#1e293b' : '#e2e8f0' },
-                    horzLines: { color: isDark ? '#1e293b' : '#e2e8f0' }
+                    vertLines: { color: isDark ? '#2a2b36' : '#e2e8f0' },
+                    horzLines: { color: isDark ? '#2a2b36' : '#e2e8f0' }
                 }
             });
         }
     };
 
-    themeBtns.forEach(btn => {
-        btn.addEventListener('click', () => setTheme(btn.getAttribute('data-t')));
-    });
+    if (themeSwitch) {
+        themeSwitch.addEventListener('change', (e) => {
+            setTheme(e.target.checked);
+        });
+    }
 
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-        if (localStorage.getItem('finces-theme') === 'system') {
-            setTheme('system');
-        }
-    });
-
-    const savedTheme = localStorage.getItem('finces-theme') || 'system';
-    setTheme(savedTheme);
-});
+    // Cargar tema guardado
+    const savedTheme = localStorage.getItem('finces-theme');
+    if (savedTheme) {
+        setTheme(savedTheme === 'dark');
+    } else {
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setTheme(prefersDark);
+    }
+}); // Final de DOMContentLoaded

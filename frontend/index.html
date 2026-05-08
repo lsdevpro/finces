@@ -125,191 +125,49 @@
             height: 100%;
         }
 
-                        /* 5. BARRA LATERAL (SIDEBAR) */
-        .sidebar {
-            width: var(--sb-expanded);
-            background: var(--bg-side);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            transition: width var(--transition);
-            padding: 24px 16px;
-            flex-shrink: 0;
-            z-index: 10;
-        }
+                                /* 5. BARRA LATERAL (SIDEBAR) - ESTILO CHAINX APLICADO A FINCES */
+        .sidebar { width: var(--sb-expanded); background: var(--bg-main); border-right: 1px solid var(--border); display: flex; flex-direction: column; transition: width var(--transition); padding: 24px 20px; flex-shrink: 0; z-index: 10; }
+        .sidebar.collapsed { width: var(--sb-collapsed); padding: 24px 12px; }
+        
+        .sidebar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding: 0 4px; }
+        .brand { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 1.3rem; letter-spacing: 0.5px; color: var(--text); }
+        .brand i { color: var(--text); font-size: 1.4rem; }
+        
+        #btn-toggle { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; transition: 0.2s; padding: 4px; }
+        #btn-toggle:hover { color: var(--text); }
 
-        .sidebar.collapsed {
-            width: var(--sb-collapsed);
-            padding: 24px 8px;
-        }
+        .nav-menu { display: flex; flex-direction: column; gap: 4px; flex-grow: 1; overflow-y: auto; overflow-x: hidden; }
+        .nav-menu::-webkit-scrollbar { width: 4px; }
+        .nav-menu::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-        .sidebar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 40px;
-            padding: 0 8px;
-        }
+        .nav-item { display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-radius: 12px; color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 0.9rem; transition: all 0.2s ease; border: none !important; }
+        .nav-item:hover { color: var(--text); background-color: rgba(139, 142, 159, 0.05); }
+        .nav-item i { font-size: 1.1rem; min-width: 20px; text-align: center; }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 500;
-            font-size: 1.25rem;
-            letter-spacing: 0.5px;
-        }
+        .nav-item.active { background-color: rgba(36, 33, 217, 0.15); color: var(--text); }
+        [data-theme="dark"] .nav-item.active { background-color: #1e2235; color: #ffffff; }
+        .nav-item.active i { color: var(--accent); }
+        [data-theme="dark"] .nav-item.active i { color: #818cf8; }
 
-        .brand i {
-            color: var(--accent);
-            font-size: 1.5rem;
-        }
+        .sidebar-footer { padding-top: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 16px; }
+        
+        .upgrade-card { background: linear-gradient(135deg, rgba(36,33,217,0.1) 0%, rgba(36,33,217,0.02) 100%); border-radius: 14px; padding: 18px 16px; border: 1px solid rgba(36,33,217,0.2); }
+        [data-theme="dark"] .upgrade-card { background: linear-gradient(135deg, #2b1b54 0%, #151136 100%); border-color: rgba(139, 92, 246, 0.2); }
+        .upgrade-card h4 { font-size: 0.9rem; color: var(--text); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
+        .upgrade-card p { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
 
-        #btn-toggle {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 1rem;
-            transition: 0.2s;
-        }
+        .chainx-toggle-row { display: flex; justify-content: space-between; align-items: center; color: var(--text-muted); font-size: 0.85rem; padding: 0 4px; font-weight: 500; }
+        .c-switch { position: relative; width: 40px; height: 22px; appearance: none; background: var(--border); border-radius: 20px; outline: none; cursor: pointer; transition: 0.3s; }
+        .c-switch:checked { background: var(--accent); }
+        [data-theme="dark"] .c-switch:checked { background: #6366f1; }
+        .c-switch::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: 0.3s; }
+        .c-switch:checked::after { transform: translateX(18px); }
 
-        #btn-toggle:hover {
-            color: var(--text);
-        }
+        #btn-logout-new { background: none; border: none; font-family: inherit; width: 100%; display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-radius: 12px; color: var(--color-bear); font-weight: 500; font-size: 0.9rem; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+        #btn-logout-new:hover { background-color: rgba(239, 68, 68, 0.1); }
 
-        .nav-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            flex-grow: 1;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-weight: 400;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-            border-left: 3px solid transparent;
-            white-space: nowrap;
-        }
-
-        .nav-item:hover {
-            color: var(--text);
-            background-color: rgba(36, 33, 217, 0.05);
-        }
-
-        .nav-item i {
-            font-size: 1.1rem;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        /* Píldora Activa */
-        .nav-item.active {
-            background-color: rgba(36, 33, 217, 0.15);
-            color: var(--text);
-            border-left: 3px solid var(--accent);
-        }
-
-        .nav-item.active i {
-            color: var(--accent);
-        }
-
-        /* Sidebar Footer & Theme Controls */
-        .sidebar-footer {
-            border-top: 1px solid var(--border);
-            padding-top: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .theme-controls {
-            display: flex;
-            gap: 8px;
-            background: var(--bg-main);
-            padding: 6px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-        }
-
-        .t-btn {
-            flex: 1;
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            padding: 8px 0;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 1rem;
-        }
-
-        .t-btn:hover {
-            color: var(--text);
-        }
-
-        .t-btn.active {
-            background: var(--bg-side);
-            color: var(--accent);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        #btn-logout-new {
-            background: none;
-            border: none;
-            font-family: inherit;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            color: var(--color-bear);
-            font-weight: 400;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-
-        #btn-logout-new:hover {
-            background-color: rgba(239, 68, 68, 0.1);
-        }
-
-        #btn-logout-new i {
-            font-size: 1.1rem;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        /* Sidebar Colapsada */
-        .sidebar.collapsed .brand span,
-        .sidebar.collapsed .nav-item span,
-        .sidebar.collapsed #btn-logout-new span {
-            display: none;
-        }
-
-        .sidebar.collapsed .nav-item {
-            justify-content: center;
-            padding: 12px 0;
-        }
-
-        .sidebar.collapsed .theme-controls {
-            flex-direction: column;
-        }
-
-        .sidebar.collapsed #btn-logout-new {
-            justify-content: center;
-            padding: 12px 0;
-        }
+        .sidebar.collapsed .brand span, .sidebar.collapsed .nav-item span, .sidebar.collapsed .upgrade-card, .sidebar.collapsed .chainx-toggle-row span, .sidebar.collapsed #btn-logout-new span { display: none; }
+        .sidebar.collapsed .nav-item, .sidebar.collapsed .chainx-toggle-row, .sidebar.collapsed #btn-logout-new { justify-content: center; padding: 12px 0; }
 
         /* 6. ÁREA DE CONTENIDO (Main View) */
         .main-content {
@@ -862,28 +720,32 @@
         <div class="app-container">
 
             <!-- BARRA LATERAL (SIDEBAR) -->
-                                    <aside id="sidebar" class="sidebar">
+                                                <aside id="sidebar" class="sidebar">
                 <div class="sidebar-header">
                     <div class="brand"><i class="fas fa-layer-group"></i><span>Finces</span></div>
-                    <button id="btn-toggle"><i class="fas fa-chevron-left"></i></button>
+                    <button id="btn-toggle" title="Colapsar menú"><i class="fas fa-angle-double-left"></i></button>
                 </div>
+                
                 <nav class="nav-menu">
-                    <a href="#" class="nav-item active" data-page="terminal"><i
-                            class="fas fa-chart-line"></i><span>Terminal</span></a>
-                    <a href="#" class="nav-item" data-page="portfolio"><i
-                            class="fas fa-wallet"></i><span>Portafolio</span></a>
-                    <a href="#" class="nav-item" data-page="analisis"><i class="fas fa-microchip"></i><span>Análisis
-                            Quant</span></a>
-                    <a href="#" class="nav-item" data-page="config"><i
-                            class="fas fa-sliders-h"></i><span>Ajustes</span></a>
+                    <a href="#" class="nav-item" data-page="terminal"><i class="fas fa-chart-line"></i><span>Terminal</span></a>
+                    <a href="#" class="nav-item" data-page="portfolio"><i class="fas fa-wallet"></i><span>Portafolio</span></a>
+                    <a href="#" class="nav-item active" data-page="analisis"><i class="fas fa-microchip"></i><span>Análisis Quant</span></a>
+                    <a href="#" class="nav-item" data-page="config"><i class="fas fa-sliders-h"></i><span>Ajustes</span></a>
                 </nav>
+
                 <div class="sidebar-footer">
-                    <div class="theme-controls">
-                        <button class="t-btn" data-t="light" title="Modo Claro"><i class="fas fa-sun"></i></button>
-                        <button class="t-btn" data-t="dark" title="Modo Oscuro"><i class="fas fa-moon"></i></button>
-                        <button class="t-btn" data-t="system" title="Tema del Sistema"><i
-                                class="fas fa-desktop"></i></button>
+                    <div class="upgrade-card">
+                        <h4><i class="fas fa-rocket"></i> Licencia Pro</h4>
+                        <p>Terminal Institucional Activa</p>
                     </div>
+                    
+                    <div class="chainx-toggle-row">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <i class="fas fa-moon"></i> <span>Modo Oscuro</span>
+                        </div>
+                        <input type="checkbox" class="c-switch" id="theme-toggle-switch">
+                    </div>
+                    
                     <button id="btn-logout-new"><i class="fas fa-sign-out-alt"></i><span>Desconectar</span></button>
                 </div>
             </aside>
